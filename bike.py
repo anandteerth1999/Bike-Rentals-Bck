@@ -78,20 +78,52 @@ def login():
 
 @app.route("/getBikes", methods=["GET"])
 def getBikes():
+    result = []
     try:
         jwt.decode(
             request.headers['Authorization'], JWT_SECRET, verify=True)
         conn = e.connect()
-        query = conn.execute('select * from bike').fetchall()
+        query = conn.execute('select id,priceperday,model,imageurl,location,no_of_units from bike').fetchall()
         for i in query:
-           result.append({
-               "id": i[0],
+            result.append({
+                "id": i[0],
                 "priceperday": i[1],
                 "model": i[2],
                 "imageurl": i[3],
                 "location": i[4],
                 "no_of_units": i[5],
-           })
+            })
+        return {'result': result}
+    except KeyError:
+        return "Token Not found"
+    except jwt.exceptions.DecodeError:
+        return "TOKEN DECODE FAILED"
+
+
+@app.route("/getReservations", methods=["GET"])
+def getReservations():
+    result = []
+    try:
+        jwt.decode(
+            request.headers['Authorization'], JWT_SECRET, verify=True)
+        conn = e.connect()
+        query = conn.execute('select booking_id,Name,age,gender,drivinglicense,address,email,sdate,edate,model,location\
+                               from Bike,booking\
+                               where Bike.id = booking.id;').fetchall()
+        for i in query:
+            result.append({
+                "booking_id": i[0],
+                "Name": i[1],
+                "age": i[2],
+                "gender": i[3],
+                "drivinglicense": i[4],
+                "address": i[5],
+                "email": i[6],
+                "sdate": i[7],
+                "edate": i[8],
+                "model": i[9],
+                "location": i[10],
+            })
         return {'result': result}
     except KeyError:
         return "Token Not found"
