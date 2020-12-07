@@ -1,0 +1,5 @@
+flask
+sqlalchemy
+flask_restful
+flask_cors
+PyJWT
