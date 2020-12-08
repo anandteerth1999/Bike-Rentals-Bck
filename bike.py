@@ -101,6 +101,14 @@ def reserve():
 
     conn.execute(INSERT_QUERY)
 
+    MAIL_QUERY = """SELECT email,Name,model,location,booking_id,priceperday,imageurl, sdate, edate
+    from Bike, booking
+    where Bike.id = booking.id and
+    booking_id = %d
+    """ % (int(booking_id)+1)
+
+    data = conn.execute(MAIL_QUERY).fetchall()[0]
+    mail(data)
     return "Done"
 
 
@@ -213,6 +221,84 @@ def insertBike():
         return "TOKEN DECODE FAILED"
     except jwt.exceptions.ExpiredSignatureError:
         return "TOKEN DECODE FAILED"
+
+
+def mail(data):
+    import smtplib
+    import ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    sender_email = "bookanybike@gmail.com"
+    receiver_email = data[0]
+    port = 465  # For SSL
+    password = "9535652311"
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Bike Rental Booking Conformation"
+    message["From"] = sender_email
+    message["To"] = receiver_email
+
+    # Create the plain-text and HTML version of your message
+    text = """\
+    Hi %s,
+    Your booking for %s has been confirmed.
+    Location: %s
+    Booking ID: %d
+    Price/day: %d
+    """ % (data[1], data[2], data[3], int(data[4]), int(data[5]))
+    html = """\
+    <html>
+  <body>
+    <div>
+      <span style="font-size: 3rem; font-family: sans-serif; color: green"
+        >Booking Confirmed</span
+      ><br/><br/> <span style="font-size: 2.5rem; font-family: sans-serif; color: purple"
+        >%s</span
+      ><br/><br/><span style="font-size: 2.5rem; font-family: sans-serif; color: orange"
+        >%s-%s</span
+      ><br/><br/>
+      <span style="font-size: 2rem; font-family: sans-serif; color: red"
+        >%s</span
+      ><br/><br/>
+      <img
+        style="width: 200px; height: 200px"
+        src="%s"
+      />
+      <br/><br/>
+      <table cellpadding="0" cellspacing="0" width="640" align="center" border="1">
+        <tr>
+          <td>Location:</td>
+          <td>%s</td>
+        </tr>
+        <tr>
+          <td>Booking ID:</td>
+          <td>%d</td>
+        </tr>
+        <tr>
+          <td>Price/day:</td>
+          <td>%d</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+    """ % (data[1], data[7], data[8], data[2], data[6], data[3], int(data[4]), int(data[5]))
+    # Turn these into plain/html MIMEText objects
+    part1 = MIMEText(text, "plain")
+    part2 = MIMEText(html, "html")
+
+    message.attach(part1)
+    message.attach(part2)
+
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login("bookanybike@gmail.com", password)
+        server.sendmail(
+            sender_email, receiver_email, message.as_string()
+        )
 
 
 if __name__ == '__main__':
