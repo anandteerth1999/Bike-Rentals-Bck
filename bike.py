@@ -67,23 +67,41 @@ def availableBikes():
                 rem = (j['no_units']-dict1['no_units']
                        ) if(j['no_units']-dict1['no_units'] > 0) else 0
                 if rem > 0:
-                    d[dict1['model']]=rem
+                    d[dict1['model']] = rem
     for i in res:
         if i not in booked:
-            l = list(filter(lambda x: True if(x['model']==i) else False,total))
-            d[l[0]['model']]=l[0]['no_units']
+            l = list(filter(lambda x: True if(
+                x['model'] == i) else False, total))
+            d[l[0]['model']] = l[0]['no_units']
     for i in d.keys():
-        query = conn.execute('select id,imageurl,priceperday from Bike where model = \''+i+'\' and location = \''+data['location']+'\'').fetchall()[0]
+        query = conn.execute('select id,imageurl,priceperday from Bike where model = \'' +
+                             i+'\' and location = \''+data['location']+'\'').fetchall()[0]
         dict = {
-            'id':query[0],
-            'model':i,
-            'priceperday':query[2]*delta.days,
-            'location':data['location'],
-            'no_of_units':d[i],
-            'imageurl':query[1]
+            'id': query[0],
+            'model': i,
+            'priceperday': query[2]*delta.days,
+            'location': data['location'],
+            'no_of_units': d[i],
+            'imageurl': query[1]
         }
         result.append(dict)
     return {'result': result}
+
+
+@app.route("/reserve", methods=["POST"])
+def reserve():
+    data = request.get_json()
+    conn = e.connect()
+    booking_id = (conn.execute(
+        "select max(booking_id) from booking").fetchall()[0][0])
+
+    INSERT_QUERY = """INSERT INTO "main"."booking" ("booking_id", "Name", "age", "gender", "drivinglicense", "address", "sdate", "edate", "id", "email") 
+                    VALUES (%d, '%s', %d, '%s', '%s', '%s', '%s', '%s', %d, '%s');""" % (int(booking_id)+1, data['Name'], int(data['age']), data['gender'],
+                                                                                         data['License'], data['Address'], data['startDate'], data['endDate'], int(data['id']), data['email'])
+
+    conn.execute(INSERT_QUERY)
+
+    return "Done"
 
 
 @app.route("/login", methods=["POST"])
