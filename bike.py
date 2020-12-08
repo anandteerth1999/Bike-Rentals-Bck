@@ -153,5 +153,22 @@ def deleteReservation():
         return "TOKEN DECODE FAILED"
 
 
+@app.route("/insertBike", methods=["POST"])
+def insertBike():
+    try:
+        data = request.get_json()
+        jwt.decode(
+            request.headers['Authorization'], JWT_SECRET, verify=True)
+        conn = e.connect()
+        INSERT_QUERY = "insert into Bike(id,imageurl,location,model,no_of_units,priceperday) values(%d,'%s','%s','%s',%d,%f);" % (
+            int(data['id']), data['imageurl'], data['location'], data['model'], int(data['no_of_units']), float(data['priceperday']))
+        conn.execute(INSERT_QUERY)
+        return "Done"
+    except KeyError:
+        return "Token Not found"
+    except jwt.exceptions.DecodeError:
+        return "TOKEN DECODE FAILED"
+
+
 if __name__ == '__main__':
     app.run(debug=True)
