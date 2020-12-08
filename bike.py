@@ -139,6 +139,8 @@ def getBikes():
         return "Token Not found"
     except jwt.exceptions.DecodeError:
         return "TOKEN DECODE FAILED"
+    except jwt.exceptions.ExpiredSignatureError:
+        return "TOKEN DECODE FAILED"
 
 
 @app.route("/deleteBike", methods=["POST"])
@@ -153,6 +155,8 @@ def deleteBike():
     except KeyError:
         return "Token Not found"
     except jwt.exceptions.DecodeError:
+        return "TOKEN DECODE FAILED"
+    except jwt.exceptions.ExpiredSignatureError:
         return "TOKEN DECODE FAILED"
 
 
@@ -170,6 +174,8 @@ def deleteReservation():
         return "Token Not found"
     except jwt.exceptions.DecodeError:
         return "TOKEN DECODE FAILED"
+    except jwt.exceptions.ExpiredSignatureError:
+        return "TOKEN DECODE FAILED"
 
 
 @app.route("/insertBike", methods=["POST"])
@@ -186,6 +192,8 @@ def insertBike():
     except KeyError:
         return "Token Not found"
     except jwt.exceptions.DecodeError:
+        return "TOKEN DECODE FAILED"
+    except jwt.exceptions.ExpiredSignatureError:
         return "TOKEN DECODE FAILED"
 
 
