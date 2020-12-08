@@ -31,6 +31,8 @@ def availableBikes():
     data = request.get_json()
     result.clear()
     conn = e.connect()
+    d = {}
+    booked = []
     res = []
     total = []
     sdate = [int(i) for i in data['startDate'].split('/')]
@@ -51,6 +53,7 @@ def availableBikes():
             'no_units': i[1]
         }
         total.append(dict)
+        res.append(i[0])
     reserved = conn.execute('select Bike.model,count(*) from booking,Bike where sdate in '+reservation_dates +
                             ' and booking.id = Bike.id and Bike.location = \''+data['location']+'\' group by(Bike.model)').fetchall()
     for i in reserved:
@@ -58,12 +61,28 @@ def availableBikes():
             'model': i[0],
             'no_units': i[1]
         }
+        booked.append(i[0])
         for j in total:
             if dict1['model'] == j['model']:
                 rem = (j['no_units']-dict1['no_units']
-                       ) if(j['no_units']-dict['no_units'] > 0) else 0
+                       ) if(j['no_units']-dict1['no_units'] > 0) else 0
                 if rem > 0:
-                    result.append(dict1['model'])
+                    d[dict1['model']]=rem
+    for i in res:
+        if i not in booked:
+            l = list(filter(lambda x: True if(x['model']==i) else False,total))
+            d[l[0]['model']]=l[0]['no_units']
+    for i in d.keys():
+        query = conn.execute('select id,imageurl,priceperday from Bike where model = \''+i+'\' and location = \''+data['location']+'\'').fetchall()[0]
+        dict = {
+            'id':query[0],
+            'model':i,
+            'priceperday':query[2]*delta.days,
+            'location':data['location'],
+            'no_of_units':d[i],
+            'imageurl':query[1]
+        }
+        result.append(dict)
     return {'result': result}
 
 
